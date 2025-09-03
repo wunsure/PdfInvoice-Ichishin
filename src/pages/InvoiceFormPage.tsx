@@ -193,8 +193,8 @@ const InvoiceFormPage: React.FC = () => {
   }
 
   return (
-    <div className="flex w-full h-screen bg-gray-100">
-      <div className="w-1/2 p-8 overflow-y-auto">
+    <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-100">
+      <div className="w-full lg:w-1/2 p-4 lg:p-8 overflow-y-auto">
         <div className="flex items-center gap-4 mb-6">
           <Link to="/">
             <Button variant="outline" size="icon">
@@ -206,7 +206,7 @@ const InvoiceFormPage: React.FC = () => {
           </h1>
         </div>
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="invoiceNumber">請求書番号</Label>
               <Input
@@ -251,28 +251,28 @@ const InvoiceFormPage: React.FC = () => {
             <h2 className="text-lg font-semibold mb-4">請求項目</h2>
             <div className="space-y-3">
               {invoiceData.items.map((item: InvoiceItem) => (
-                <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+                <div key={item.id} className="flex flex-col md:grid md:grid-cols-12 gap-2 items-center">
                   <Input
                     placeholder="品番・品名"
-                    className="col-span-5"
+                    className="md:col-span-5"
                     value={item.description}
                     onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
                   />
                   <Input
                     type="number"
                     placeholder="単価"
-                    className="col-span-2"
+                    className="md:col-span-2"
                     value={item.unitPrice || ""}
                     onChange={(e) => handleItemChange(item.id, "unitPrice", e.target.value)}
                   />
                   <Input
                     type="number"
                     placeholder="数量"
-                    className="col-span-2"
+                    className="md:col-span-2"
                     value={item.quantity || ""}
                     onChange={(e) => handleItemChange(item.id, "quantity", e.target.value)}
                   />
-                  <div className="col-span-2">
+                  <div className="md:col-span-2">
                     <Select
                       value={item.tax}
                       onValueChange={(value) => handleItemChange(item.id, "tax", value || "税込")}
@@ -288,7 +288,7 @@ const InvoiceFormPage: React.FC = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeItem(item.id)}
-                    className="col-span-1 text-destructive hover:text-destructive"
+                    className="md:col-span-1 text-destructive hover:text-destructive self-center md:self-auto"
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
@@ -304,7 +304,9 @@ const InvoiceFormPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="w-1/2 relative flex flex-col">
+
+      {/* 2. 右侧预览区域 */}
+      <div className="w-full lg:w-1/2 relative flex flex-col h-[80vh] lg:h-screen">
         <div className="absolute top-4 right-8 z-10 flex space-x-2 bg-white p-2 rounded-lg shadow-md">
           <button onClick={handleZoomOut} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-lg font-bold">-</button>
           <span className="px-3 py-1 text-sm flex items-center">{Math.round(scale * 100)}%</span>
@@ -313,7 +315,7 @@ const InvoiceFormPage: React.FC = () => {
             <Download className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex-grow overflow-auto p-8 flex justify-center">
+        <div className="flex-grow overflow-auto p-4 lg:p-8 flex justify-center lg:items-center">
           <div ref={previewComponentRef} style={{ transform: `scale(${scale})`, transformOrigin: "top center", transition: "transform 0.2s" }}>
             <Invoice data={invoiceData} />
           </div>

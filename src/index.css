@@ -126,3 +126,8 @@ button.no-theme:hover {
   color: #000000 !important; 
   border-color: hsl(var(--border)) !important;
 }
+
+.export-mode td > div, .export-mode th > div {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}

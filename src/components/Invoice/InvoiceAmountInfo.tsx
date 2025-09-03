@@ -81,7 +81,11 @@ const InvoiceAmountInfo: React.FC<Props> = ({ data, primaryColor = "#00b050" }) 
 
       {/* 右侧：银行账户信息 */}
       <div className="w-1/2 pl-4">
-         <table className="w-full text-left">
+         <table className="w-full text-left"
+         style={{
+            border: `2px solid ${primaryColor}`
+          }}
+         >
            <tbody>
              <tr>
                <TableHeaderCell primaryColor={primaryColor} className="w-1/3 !text-center">

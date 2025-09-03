@@ -35,12 +35,12 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50/50 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
         
-        <header className="flex items-center justify-between mb-6">
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-primary">請求書ダッシュボード</h1>
             <p className="text-muted-foreground">全ての請求書をここで管理します。</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 self-end sm:self-center">
             <ThemeSwitcher />
             <div className="h-6 w-px bg-border" />
             <Link to="/issuers"><Button variant="outline">開票者管理</Button></Link>
@@ -64,10 +64,11 @@ const Home: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[150px]">請求書番号</TableHead>
+                   <TableHead className="w-[150px]">請求書番号</TableHead>
                   <TableHead>顧客名</TableHead>
-                  <TableHead>発行日</TableHead>
-                  <TableHead>ステータス</TableHead>
+                  
+                  <TableHead className="hidden md:table-cell">発行日</TableHead>
+                  <TableHead className="hidden sm:table-cell">ステータス</TableHead>
                   <TableHead className="text-right">金額</TableHead>
                   <TableHead className="w-[100px] text-center">操作</TableHead>
                 </TableRow>
@@ -81,14 +82,14 @@ const Home: React.FC = () => {
                       <TableRow key={invoice.id}>
                         <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                         <TableCell>{invoice.client.clientName}</TableCell>
-                        <TableCell>{invoice.date}</TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">{invoice.date}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <Badge variant="outline">下書き</Badge>
                         </TableCell>
                         <TableCell className="text-right">¥{totalAmount.toLocaleString()}</TableCell>
                         <TableCell className="text-center">
                           <Link to={`/invoice/edit/${invoice.id}`}>
-                            <Button className="no-theme" variant="ghost" size="icon" >
+                            <Button variant="ghost" size="icon" >
                               <FilePenLine className="h-4 w-4" />
                             </Button>
                           </Link>
