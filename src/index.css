@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   字體定義（原本代碼，保留）
+========================= */
+@font-face {
+  font-family: "Noto Sans JP";      /* 全局使用的字體名 */
+  src: url("/fonts/NotoSansJP-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;             /* Variable Font 範圍 */
+  font-style: normal;
+  font-display: swap;               /* 可選，避免 FOUT */
+}
+
+body {
+  @apply bg-background text-foreground font-sans; /* 使用 Tailwind font-sans */
+  font-family: 'Noto Sans JP', 'Roboto', sans-serif; /* 明確指定字體 */
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000; /* 👈 固定純黑文字 */
+}
+
+/* =========================
+   顏色變量（原本代碼，保留）
+========================= */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 50%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%; /* 主題色 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%; /* 主題色切換示例 */
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+/* =========================
+   邊框統一（原本代碼，保留）
+========================= */
+@layer base {
+  * {
+    @apply border-border;
+  }
+}
+
+/* =========================
+   新增：支持主題色的焦點樣式
+   --- 以下是我新增的部分 ---
+========================= */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: hsl(var(--primary));          /* 主題色邊框 */
+  outline-color: hsl(var(--primary));         /* 主題色 outline */
+  box-shadow: 0 0 0 2px hsl(var(--primary))33; /* 半透明外框 */
+}
+
+/* 按鈕使用主題色（可選，可直接讓所有按鈕跟隨主題） */
+button {
+  background-color: transparent; /* 默認無背景 */
+  color: #333333; /* 默認深灰色文字 ✅ */
+  border: 1px solid hsl(var(--border)); /* 邊框可保留 */
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: hsl(var(--primary)); /* 背景變成主題色 */
+  color: hsl(var(--primary-foreground)); /* 文字變成主題色對應的前景色 */
+  border-color: hsl(var(--primary)); /* 邊框跟隨背景色 */
+}
+
+button.no-theme {
+  background-color: transparent !important; /* 永遠透明 */
+  color: #000000 !important; /* 永遠黑色 */
+  border-color: hsl(var(--border)) !important; /* 邊框保持原色 */
+}
+
+button.no-theme:hover {
+  background-color: transparent !important; /* hover 也不變 */
+  color: #000000 !important; 
+  border-color: hsl(var(--border)) !important;
+}
