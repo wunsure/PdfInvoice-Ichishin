@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Trash } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Trash } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const InvoiceFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,89 +19,70 @@ const InvoiceFormPage: React.FC = () => {
   const { issuers, clients, invoices, addInvoice, updateInvoice } = useData();
   const navigate = useNavigate();
   const [invoiceData, setInvoiceData] = useState<InvoiceType | null>(null);
-  const [scale, setScale] = useState(0.55);
+
+  // 響應式縮放比例的最終解決方案
+  const [scale, setScale] = useState(0.55); 
   const previewComponentRef = useRef<HTMLDivElement>(null);
 
-  
-  
-  
-  const handleDownloadPdf = () => {
-  const input = previewComponentRef.current;
-  if (!input) return;
-
-  // ✅ [新增] 導出模式：加上 class
-  input.classList.add("export-mode");
-
-  const originalTransform = input.style.transform;
-  input.style.transform = "scale(1)";
-  const originalTransformOrigin = input.style.transformOrigin;
-  input.style.transformOrigin = "top left";
-
-  const parentContainer = input.parentElement;
-  let originalParentStyles: { [key: string]: string } = {};
-  if (parentContainer) {
-    originalParentStyles = {
-      overflow: parentContainer.style.overflow,
-      flexGrow: parentContainer.style.flexGrow,
-      height: parentContainer.style.height,
-      padding: parentContainer.style.padding,
+  useEffect(() => {
+    const checkSize = () => {
+      if (window.matchMedia('(max-width: 1023px)').matches) {
+        setScale(0.35);
+      } else {
+        setScale(0.55);
+      }
     };
-    parentContainer.style.overflow = "visible";
-    parentContainer.style.flexGrow = "0";
-    parentContainer.style.height = "auto";
-    parentContainer.style.padding = "0";
-  }
+    checkSize();
+    window.addEventListener('resize', checkSize);
+    return () => window.removeEventListener('resize', checkSize);
+  }, []);
 
-  input.offsetWidth;
+  const handleDateChange = (date: Date | undefined) => {
+    if (date && invoiceData) {
+      const formattedDate = date.toISOString().split('T')[0];
+      setInvoiceData({ ...invoiceData, date: formattedDate });
+    }
+  };
+  
+  // PDF 文字壓線問題的最終解決方案
+  const handleDownloadPdf = () => {
+    const input = previewComponentRef.current;
+    if (!input) return;
 
-  html2canvas(input, {
-    scale: 4,
-    useCORS: true,
-    // ❌ 原來這裡有 y: -6 偏移，現在去掉了
-  })
-    .then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const a4Width_mm = 210;
-      const a4Height_mm = 297;
-      const imgWidth_px = canvas.width;
-      const imgHeight_px = canvas.height;
-      const imgRatio = imgWidth_px / imgHeight_px;
-
-      let pdfImgWidth = a4Width_mm;
-      let pdfImgHeight = a4Width_mm / imgRatio;
-      if (pdfImgHeight > a4Height_mm) {
-        pdfImgHeight = a4Height_mm;
-        pdfImgWidth = a4Height_mm * imgRatio;
-      }
-
-      const pdf = new jsPDF("portrait", "mm", "a4");
-
-      const xOffset = (a4Width_mm - pdfImgWidth) / 2;
-
-      pdf.addImage(imgData, "PNG", xOffset, 0, pdfImgWidth, pdfImgHeight);
-
-      pdf.save(`請求書-${invoiceData?.invoiceNumber || "invoice"}.pdf`);
-    })
-    .catch((err) => {
-      console.error("PDF生成失败:", err);
-      alert("PDF生成中にエラーが発生しました。");
-    })
-    .finally(() => {
-      if (input) {
-        input.style.transform = originalTransform;
-        input.style.transformOrigin = originalTransformOrigin;
-
-        // ✅ [新增] 導出完畢後移除 class
-        input.classList.remove("export-mode");
-      }
-      if (parentContainer) {
-        for (const key in originalParentStyles) {
-          parentContainer.style[key as any] = originalParentStyles[key];
+    input.classList.add("export-mode");
+    const originalTransform = input.style.transform;
+    input.style.transform = "scale(1)";
+    
+    html2canvas(input, { scale: 4, useCORS: true })
+      .then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const a4Width_mm = 210;
+        const a4Height_mm = 297;
+        const imgWidth_px = canvas.width;
+        const imgHeight_px = canvas.height;
+        const imgRatio = imgWidth_px / imgHeight_px;
+        let pdfImgWidth = a4Width_mm;
+        let pdfImgHeight = a4Width_mm / imgRatio;
+        if (pdfImgHeight > a4Height_mm) {
+          pdfImgHeight = a4Height_mm;
+          pdfImgWidth = a4Height_mm * imgRatio;
         }
-      }
-    });
-};
-
+        const pdf = new jsPDF("portrait", "mm", "a4");
+        const xOffset = (a4Width_mm - pdfImgWidth) / 2;
+        pdf.addImage(imgData, "PNG", xOffset, 0, pdfImgWidth, pdfImgHeight);
+        pdf.save(`請求書-${invoiceData?.invoiceNumber || "invoice"}.pdf`);
+      })
+      .catch((err) => {
+        console.error("PDF生成失败:", err);
+        alert("PDF生成中にエラーが発生しました。");
+      })
+      .finally(() => {
+        if (input) {
+          input.style.transform = originalTransform;
+          input.classList.remove("export-mode");
+        }
+      });
+  };
 
   useEffect(() => {
     if (isEditMode) {
@@ -216,12 +197,10 @@ const InvoiceFormPage: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date">発行日</Label>
-              <Input
-                type="date"
-                id="date"
-                value={invoiceData.date}
-                onChange={(e) => handleInvoiceDataChange("date", e.target.value)}
+              <Label>発行日</Label>
+              <DatePicker 
+                date={new Date(invoiceData.date)}
+                setDate={handleDateChange}
               />
             </div>
           </div>
@@ -249,48 +228,64 @@ const InvoiceFormPage: React.FC = () => {
           </div>
           <div className="border-t pt-6">
             <h2 className="text-lg font-semibold mb-4">請求項目</h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {invoiceData.items.map((item: InvoiceItem) => (
-                <div key={item.id} className="flex flex-col md:grid md:grid-cols-12 gap-2 items-center">
-                  <Input
-                    placeholder="品番・品名"
-                    className="md:col-span-5"
-                    value={item.description}
-                    onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="単価"
-                    className="md:col-span-2"
-                    value={item.unitPrice || ""}
-                    onChange={(e) => handleItemChange(item.id, "unitPrice", e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="数量"
-                    className="md:col-span-2"
-                    value={item.quantity || ""}
-                    onChange={(e) => handleItemChange(item.id, "quantity", e.target.value)}
-                  />
-                  <div className="md:col-span-2">
-                    <Select
-                      value={item.tax}
-                      onValueChange={(value) => handleItemChange(item.id, "tax", value || "税込")}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="税込">税込</SelectItem>
-                        <SelectItem value="税抜">税抜</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div key={item.id} className="p-4 border rounded-lg bg-white space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`item-desc-${item.id}`}>品番・品名</Label>
+                    <Input
+                      id={`item-desc-${item.id}`}
+                      placeholder="例：Webサイト制作"
+                      value={item.description}
+                      onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor={`item-price-${item.id}`}>単価</Label>
+                      <Input
+                        id={`item-price-${item.id}`}
+                        type="number"
+                        placeholder="10000"
+                        value={item.unitPrice || ""}
+                        onChange={(e) => handleItemChange(item.id, "unitPrice", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`item-qty-${item.id}`}>数量</Label>
+                      <Input
+                        id={`item-qty-${item.id}`}
+                        type="number"
+                        placeholder="1"
+                        value={item.quantity || ""}
+                        onChange={(e) => handleItemChange(item.id, "quantity", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`item-tax-${item.id}`}>税区分</Label>
+                      <Select
+                        value={item.tax}
+                        onValueChange={(value) => handleItemChange(item.id, "tax", value || "税込")}
+                      >
+                        <SelectTrigger id={`item-tax-${item.id}`}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="税込">税込</SelectItem>
+                          <SelectItem value="税抜">税抜</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(item.id)}
-                    className="md:col-span-1 text-destructive hover:text-destructive self-center md:self-auto"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm('本当にこの項目を削除しますか？')) {
+                        removeItem(item.id)
+                      }
+                    }}
+                    className="w-full mt-2"
                   >
-                    <Trash className="h-4 w-4" />
+                    <Trash className="mr-2 h-4 w-4" /> 削除
                   </Button>
                 </div>
               ))}
@@ -304,9 +299,7 @@ const InvoiceFormPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* 2. 右侧预览区域 */}
-      <div className="w-full lg:w-1/2 relative flex flex-col h-[80vh] lg:h-screen">
+      <div className="w-full lg:w-1/2 relative flex flex-col h-screen">
         <div className="absolute top-4 right-8 z-10 flex space-x-2 bg-white p-2 rounded-lg shadow-md">
           <button onClick={handleZoomOut} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-lg font-bold">-</button>
           <span className="px-3 py-1 text-sm flex items-center">{Math.round(scale * 100)}%</span>
@@ -315,8 +308,8 @@ const InvoiceFormPage: React.FC = () => {
             <Download className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex-grow overflow-auto p-4 lg:p-8 flex justify-center lg:items-center">
-          <div ref={previewComponentRef} style={{ transform: `scale(${scale})`, transformOrigin: "top center", transition: "transform 0.2s" }}>
+        <div className="flex-grow overflow-auto p-4 lg:p-8 flex justify-center items-center">
+          <div ref={previewComponentRef} style={{ transform: `scale(${scale})`, transformOrigin: "center center", transition: "transform 0.2s" }}>
             <Invoice data={invoiceData} />
           </div>
         </div>
