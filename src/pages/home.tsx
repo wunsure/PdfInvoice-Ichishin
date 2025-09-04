@@ -50,7 +50,7 @@ const Home: React.FC = () => {
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className=" text-2xl sm:text-3xl font-bold tracking-tight text-primary">
-              請求書ダッシュボード
+              請求書作成
             </h1>
             <p className="text-muted-foreground">
               全ての請求書をここで管理します。
@@ -58,14 +58,15 @@ const Home: React.FC = () => {
           </div>
           <div className="w-full md:w-auto flex flex-col items-stretch md:items-end gap-2">
             {/* 1. 主题切换器现在默认宽度为100%，在大屏幕上自适应宽度 */}
-            <div className="p-2 border rounded-lg bg-background w-full md:w-auto">
+            <div className="p-2 border rounded-lg bg-background w-full md:w-auto flex flex-col items-center gap-2">
+              <p>テーマ色管理</p>
               <ThemeSwitcher />
             </div>
             {/* 1. 用一个新的 div 包裹两个管理按钮 */}
             <div className="grid grid-cols-2 gap-2 w-full md:w-auto">
               <Link to="/issuers" className="col-span-1">
                 <Button variant="outline" className="w-full">
-                  開票者管理
+                  発行者管理
                 </Button>
               </Link>
               <Link to="/clients" className="col-span-1">

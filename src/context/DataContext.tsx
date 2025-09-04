@@ -1,22 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Invoice, IssuerInfo, ClientInfo } from '../types/invoice';
 import { initialInvoices, initialIssuers, initialClients } from '../data/initialData';
 
-/* =========================
-   原始代碼保留：主題顏色數據
-========================= */
-export const themes = [
-  { name: 'slate', color: '240 5.9% 10%' },
+// --- 主题相关的定义 (无变化) ---
+export const themes = [ 
   { name: 'green', color: '142.1 76.2% 36.3%' },
   { name: 'blue', color: '221.2 83.2% 53.3%' },
   { name: 'orange', color: '24.6 95% 53.1%' },
+  { name: 'Charcoal Blue', color: '220 15% 20%' },
 ];
-export type ThemeName = 'slate' | 'green' | 'blue' | 'orange';
+export type ThemeName = 'green' | 'blue' | 'orange'| 'Charcoal Blue' ;
 
-/* =========================
-   原始代碼保留：DataContext類型定義
-========================= */
+// --- Context 类型定义 (无变化) ---
 interface DataContextType {
   invoices: Invoice[];
   issuers: IssuerInfo[];
@@ -36,15 +32,11 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | null>(null);
 
-/* =========================
-   原始代碼保留：useStickyState自定義hook
-========================= */
+// --- useStickyState Hook (无变化) ---
 function useStickyState<T>(defaultValue: T, key: string): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [value, setValue] = useState<T>(() => {
     const stickyValue = window.localStorage.getItem(key);
-    return stickyValue !== null
-      ? JSON.parse(stickyValue)
-      : defaultValue;
+    return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
   });
 
   useEffect(() => {
@@ -54,93 +46,108 @@ function useStickyState<T>(defaultValue: T, key: string): [T, React.Dispatch<Rea
   return [value, setValue];
 }
 
-/* =========================
-   原始代碼保留：DataProvider 組件
-========================= */
+// =================================================================
+// 👇 新增: 为 Invoices 定义 Action 类型
+// =================================================================
+type InvoiceAction =
+  | { type: 'ADD'; payload: Omit<Invoice, 'id'> }
+  | { type: 'UPDATE'; payload: Invoice }
+  | { type: 'DELETE'; payload: { id: string } };
+
+// =================================================================
+// 👇 新增: Invoices 的 Reducer 函数
+// 这个函数接收当前 state 和一个 action，然后返回新的 state。
+// 所有与 invoices 相关的状态逻辑都集中在这里。
+// =================================================================
+const invoicesReducer = (state: Invoice[], action: InvoiceAction): Invoice[] => {
+  switch (action.type) {
+    case 'ADD':
+      const newInvoice = { ...action.payload, id: uuidv4() };
+      return [...state, newInvoice];
+    case 'UPDATE':
+      return state.map(invoice =>
+        invoice.id === action.payload.id ? action.payload : invoice
+      );
+    case 'DELETE':
+      return state.filter(invoice => invoice.id !== action.payload.id);
+    default:
+      return state;
+  }
+};
+
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
-  const [invoices, setInvoices] = useStickyState<Invoice[]>(initialInvoices, 'invoices_data');
+  // =================================================================
+  // 👇 修改: 使用 useReducer 管理 invoices 状态
+  // =================================================================
+  // 1. 定义一个初始化函数，用于从 localStorage 读取初始状态
+  const initInvoices = (initialValue: Invoice[]) => {
+    const stickyValue = window.localStorage.getItem('invoices_data');
+    return stickyValue ? JSON.parse(stickyValue) : initialValue;
+  };
+
+  // 2. 使用 useReducer hook
+  const [invoices, dispatchInvoices] = useReducer(invoicesReducer, initialInvoices, initInvoices);
+  
+  // 3. 使用 useEffect 将 invoices 的变化同步回 localStorage
+  useEffect(() => {
+    window.localStorage.setItem('invoices_data', JSON.stringify(invoices));
+  }, [invoices]);
+
+
+  // --- issuers 和 clients 状态管理 (无变化) ---
   const [issuers, setIssuers] = useStickyState<IssuerInfo[]>(initialIssuers, 'issuers_data');
   const [clients, setClients] = useStickyState<ClientInfo[]>(initialClients, 'clients_data');
 
-  /* =========================
-     修改/新增：theme 狀態初始化
-     原本只有 setTheme，這裡新增 effect 來修改 CSS 變量
-  ========================== */
-  const [theme, setTheme] = useStickyState<ThemeName>('slate', 'app_theme');
-
-  // 👇 新增：動態修改 --primary CSS 變量
+  // --- 主题状态管理 (无变化) ---
+  const [theme, setTheme] = useStickyState<ThemeName>('Charcoal Blue', 'app_theme');
   useEffect(() => {
-    // 找到對應的顏色值
     const selectedTheme = themes.find(t => t.name === theme);
     if (selectedTheme) {
       document.documentElement.style.setProperty('--primary', selectedTheme.color);
     }
   }, [theme]);
+  const changeTheme = (themeName: ThemeName) => setTheme(themeName);
 
-  /* =========================
-     原始代碼保留：改變主題的函數
-========================= */
-  const changeTheme = (themeName: ThemeName) => {
-    setTheme(themeName);
-  };
 
-  /* =========================
-     原始代碼保留：增刪改函數
-========================= */
+  // =================================================================
+  // 👇 修改: 更新 invoices 的操作函数，现在它们 dispatch actions
+  // 对外暴露的函数名和参数保持不变，因此使用这些函数的组件（如 useInvoiceForm）无需任何修改！
+  // =================================================================
   const addInvoice = (invoiceData: Omit<Invoice, 'id'>) => {
-    const newInvoice = { ...invoiceData, id: uuidv4() };
-    setInvoices((prev: Invoice[]) => [...prev, newInvoice]);
+    dispatchInvoices({ type: 'ADD', payload: invoiceData });
   };
-
   const updateInvoice = (updatedInvoice: Invoice) => {
-    setInvoices((prevInvoices: Invoice[]) => 
-      prevInvoices.map(invoice => 
-        invoice.id === updatedInvoice.id ? updatedInvoice : invoice
-      )
-    );
+    dispatchInvoices({ type: 'UPDATE', payload: updatedInvoice });
   };
-
   const deleteInvoice = (id: string) => {
-    setInvoices((prev: Invoice[]) => prev.filter(inv => inv.id !== id));
+    dispatchInvoices({ type: 'DELETE', payload: { id } });
   };
 
+
+  // --- issuers 和 clients 的操作函数 (无变化) ---
   const addIssuer = (issuerData: Omit<IssuerInfo, 'id'>) => {
     const newIssuer = { ...issuerData, id: uuidv4() };
-    setIssuers((prev: IssuerInfo[]) => [...prev, newIssuer]);
+    setIssuers(prev => [...prev, newIssuer]);
   };
-
   const updateIssuer = (updatedIssuer: IssuerInfo) => {
-    setIssuers((prev: IssuerInfo[]) => 
-      prev.map(issuer => 
-        issuer.id === updatedIssuer.id ? updatedIssuer : issuer
-      )
-    );
+    setIssuers(prev => prev.map(issuer => issuer.id === updatedIssuer.id ? updatedIssuer : issuer));
   };
-
   const deleteIssuer = (id: string) => {
-    setIssuers((prev: IssuerInfo[]) => prev.filter(issuer => issuer.id !== id));
+    setIssuers(prev => prev.filter(issuer => issuer.id !== id));
   };
-
   const addClient = (clientData: Omit<ClientInfo, 'id'>) => {
     const newClient = { ...clientData, id: uuidv4() };
-    setClients((prev: ClientInfo[]) => [...prev, newClient]);
+    setClients(prev => [...prev, newClient]);
   };
-
   const updateClient = (updatedClient: ClientInfo) => {
-    setClients((prev: ClientInfo[]) => 
-      prev.map(client => 
-        client.id === updatedClient.id ? updatedClient : client
-      )
-    );
+    setClients(prev => prev.map(client => client.id === updatedClient.id ? updatedClient : client));
   };
-
   const deleteClient = (id: string) => {
-    setClients((prev: ClientInfo[]) => prev.filter(client => client.id !== id));
+    setClients(prev => prev.filter(client => client.id !== id));
   };
 
-  /* =========================
-     原始代碼保留：提供 value 給 context
-========================= */
+
+  // --- Context Provider 的 value (无变化) ---
   const value = {
     invoices,
     issuers,
@@ -161,9 +168,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
-/* =========================
-   原始代碼保留：useData Hook
-========================= */
+// --- useData Hook (无变化) ---
 export const useData = () => {
   const context = useContext(DataContext);
   if (!context) {
