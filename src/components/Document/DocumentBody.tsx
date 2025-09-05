@@ -1,16 +1,16 @@
 import React from "react";
-import type { Invoice, InvoiceItem } from "../../types/invoice"; // 👈 为 item 添加类型
+import type { Invoice, Quotation, DocumentItem } from "../../types/document"; // 👈 为 item 添加类型
 import TableHeaderCell from "./TableHeaderCell";
 import TdCell from "./TdCell";
 
 type Props = {
-  data: Invoice;
+  data: Invoice| Quotation;
   primaryColor?: string;
 };
 
 const MIN_BODY_ROWS = 8;
 
-const InvoiceBody: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
+const DocumentBody: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   const items = data.items;
   const emptyRowsCount = Math.max(0, MIN_BODY_ROWS - items.length);
 
@@ -41,7 +41,7 @@ const InvoiceBody: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
           </tr>
         </thead>
         <tbody>
-          {items.map((item: InvoiceItem, index: number) => ( // 👈 为 item 添加明确类型
+          {items.map((item: DocumentItem, index: number) => ( // 👈 为 item 添加明确类型
             <tr key={item.id} className="h-8">
               {/* 👇 修正这里的列顺序和内容，以匹配表头 👇 */}
               {/* 1. 品番・品名 */}
@@ -70,4 +70,4 @@ const InvoiceBody: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   );
 };
 
-export default InvoiceBody;
+export default DocumentBody;

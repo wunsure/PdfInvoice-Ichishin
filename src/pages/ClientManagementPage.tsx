@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import Modal from 'react-modal';
 import ClientForm from '../components/Client/ClientForm'; // 👈 导入我们刚创建的表单
-import type { ClientInfo } from '../types/invoice';
+import type { ClientInfo } from '../types/document';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,12 +1,12 @@
 import React from "react";
-import type { Invoice } from "../../types/invoice";
+import type { Invoice, Quotation } from "../../types/document";
 
 type Props = {
-  data: Invoice;
+  data: Invoice| Quotation;
   primaryColor?: string;
 };
 
-const InvoiceCompanyInfo: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
+const DocumentCompanyInfo: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   const { client, issuer } = data;
 
   return (
@@ -58,4 +58,4 @@ const InvoiceCompanyInfo: React.FC<Props> = ({ data, primaryColor = "#00b050" })
   );
 };
 
-export default InvoiceCompanyInfo;
+export default DocumentCompanyInfo;

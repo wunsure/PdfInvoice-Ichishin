@@ -1,13 +1,13 @@
 // src/components/Invoice/InvoiceFooter.tsx
 import React from "react";
-import type { Invoice } from "../../types/invoice";
+import type { Invoice , Quotation } from "../../types/document";
 
 type Props = {
-  data: Invoice;
+  data: Invoice| Quotation;
   primaryColor?: string;
 };
 
-const InvoiceFooter: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
+const DocumentFooter: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   return (
     <table
       className="w-full border mt-6"
@@ -29,4 +29,4 @@ const InvoiceFooter: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   );
 };
 
-export default InvoiceFooter;
+export default DocumentFooter;

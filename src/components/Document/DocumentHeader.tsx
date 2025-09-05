@@ -1,12 +1,14 @@
 import React from "react";
-import type { Invoice } from "../../types/invoice";
+import type { Invoice, Quotation } from "../../types/document";
+
 
 type Props = {
-  data: Invoice;
+  data: Invoice | Quotation;
   primaryColor?: string;
+  title: string
 };
 
-const InvoiceHeader: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => (
+const DocumentHeader: React.FC<Props> = ({ data, title,primaryColor = "#00b050" }) => (
   <div className="mb-6">
     {/* ✅ 頂部彩色條使用 primaryColor */}
     <div className="w-full h-3 mb-4" style={{ backgroundColor: primaryColor }}></div>
@@ -16,7 +18,7 @@ const InvoiceHeader: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => (
       className="text-3xl font-bold mb-2 text-center"
       style={{ color: primaryColor }}
     >
-      {data.invoiceTitle || "請求書"} {/* ✅ 從 data.invoiceTitle 讀取，如果沒有使用默認 */}
+      {title}
     </h1>
 
     {/* 發票日期 */}
@@ -26,4 +28,4 @@ const InvoiceHeader: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => (
   </div>
 );
 
-export default InvoiceHeader;
+export default DocumentHeader;

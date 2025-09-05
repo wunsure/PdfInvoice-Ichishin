@@ -1,14 +1,14 @@
 import React from "react";
-import type { Invoice, InvoiceItem } from "../../types/invoice";
+import type { Invoice, Quotation, DocumentItem } from "../../types/document";
 import TdCell from "./TdCell";
 import TableHeaderCell from "./TableHeaderCell";
 
 type Props = { 
-  data: Invoice;
+  data: Invoice| Quotation;
   primaryColor?: string;
 };
 
-const InvoiceTotal: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
+const DocumentTotal: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
 
   // 👇 --- 全新的、正确的计算逻辑 --- 👇
 
@@ -16,7 +16,7 @@ const InvoiceTotal: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   let totalTax = 0;          // 所有项目的总税额
 
   // 1. 遍历所有项目
-  data.items.forEach((item: InvoiceItem) => {
+  data.items.forEach((item: DocumentItem) => {
     const itemTotal = item.unitPrice * item.quantity;
     
     if (item.tax === '税抜') {
@@ -81,4 +81,4 @@ const InvoiceTotal: React.FC<Props> = ({ data, primaryColor = "#00b050" }) => {
   );
 };
 
-export default InvoiceTotal;
+export default DocumentTotal;

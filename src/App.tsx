@@ -6,6 +6,9 @@ import InvoiceFormPage from "./pages/InvoiceFormPage";
 import IssuerManagementPage from "./pages/IssuerManagementPage";
 import ClientManagementPage from "./pages/ClientManagementPage";
 import { DataProvider, useData, themes } from './context/DataContext'; // 👈 2. 导入 useData 和 themes
+import Footer from "./components/ui/footer"
+import MainLayout from './components/Layout/MainLayout';
+import QuotationFormPage from './pages/QuotationFormPage';
 
 // 👇 3. 创建一个新的内部组件来处理主题逻辑
 const AppContent: React.FC = () => {
@@ -24,13 +27,17 @@ const AppContent: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/invoice" element={<Navigate to="/invoice/new" replace />} />
-      <Route path="/invoice/new" element={<InvoiceFormPage />} /> 
-      <Route path="/invoice/edit/:id" element={<InvoiceFormPage />} /> 
-      <Route path="/invoice/:id" element={<InvoiceDetailPage />} /> 
-      <Route path="/issuers" element={<IssuerManagementPage />} />
-      <Route path="/clients" element={<ClientManagementPage />} />
+      <Route element={<MainLayout />}> {/* 👈 使用 MainLayout 作為父路由 */}
+       <Route path="/" element={<Home />} />
+       <Route path="/invoice" element={<Navigate to="/invoice/new" replace />} />
+       <Route path="/invoice/new" element={<InvoiceFormPage />} /> 
+       <Route path="/invoice/edit/:id" element={<InvoiceFormPage />} /> 
+       <Route path="/invoice/:id" element={<InvoiceDetailPage />} /> 
+       <Route path="/quotation/new" element={<QuotationFormPage />} /> 
+       <Route path="/quotation/edit/:id" element={<QuotationFormPage />} />
+       <Route path="/issuers" element={<IssuerManagementPage />} />
+       <Route path="/clients" element={<ClientManagementPage />} />
+      </Route>
     </Routes>
   );
 }
@@ -41,7 +48,9 @@ const App: React.FC = () => {
       <BrowserRouter>
         <AppContent />
       </BrowserRouter>
+      <Footer/>
     </DataProvider>
+    
   );
 };
 

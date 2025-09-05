@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import Modal from 'react-modal';
 import IssuerForm from '../components/Issuer/IssuerForm';
-import type { IssuerInfo, BankInfo } from '../types/invoice';
+import type { IssuerInfo, BankInfo } from '../types/document';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';

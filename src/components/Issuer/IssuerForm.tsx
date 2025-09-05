@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IssuerInfo, BankInfo } from '../../types/invoice';
+import type { IssuerInfo, BankInfo } from '../../types/document';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

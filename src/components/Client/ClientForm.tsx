@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ClientInfo } from '../../types/invoice';
+import type { ClientInfo } from '../../types/document';
 
 type Props = {
   client: Omit<ClientInfo, 'id'>;

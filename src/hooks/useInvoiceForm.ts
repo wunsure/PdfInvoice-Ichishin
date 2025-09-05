@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import type { Invoice, InvoiceItem } from '../types/invoice';
+import type { Invoice, DocumentItem } from '../types/document';
 import { v4 as uuidv4 } from 'uuid';
 
 export const useInvoiceForm = (id?: string) => {
@@ -63,7 +63,7 @@ export const useInvoiceForm = (id?: string) => {
     }
   };
 
-  const handleItemChange = (itemId: string, field: keyof InvoiceItem, value: string | number) => {
+  const handleItemChange = (itemId: string, field: keyof DocumentItem, value: string | number) => {
     setInvoiceData((prev) => {
       if (!prev) return null;
       const updatedItems = prev.items.map((item) => {
@@ -80,7 +80,7 @@ export const useInvoiceForm = (id?: string) => {
   };
 
   const addItem = () => {
-    const newItem: InvoiceItem = { id: uuidv4(), description: "", quantity: 1, unitPrice: 0, tax: "税込" };
+    const newItem: DocumentItem = { id: uuidv4(), description: "", quantity: 1, unitPrice: 0, tax: "税込" };
     setInvoiceData((prev) => (prev ? { ...prev, items: [...prev.items, newItem] } : null));
   };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
-import type { Invoice } from '../../types/invoice';
+import type { Invoice } from '../../types/document';
 
 // 注册一个支持中文的字体
 Font.register({

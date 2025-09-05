@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 // 👇 1. 确保这里也导入了 Invoice 类型
-import type { IssuerInfo, ClientInfo, Invoice, InvoiceItem } from '../types/invoice';
+import type { IssuerInfo, ClientInfo, Invoice, Quotation, DocumentItem } from '../types/document';
 
 // ==================================================================
 // 1. 獨立的開票人數據 (Issuers)
@@ -62,10 +62,12 @@ export const initialClients: ClientInfo[] = [
   },
 ];
 
+export const initialQuotations: Quotation[] = [];
+
 // ==================================================================
 // 3. (可選) 服務/商品項目模板 (Item Templates)
 // ==================================================================
-export const initialItemTemplates: Omit<InvoiceItem, 'id'>[] = [
+export const initialItemTemplates: Omit<DocumentItem, 'id'>[] = [
     { description: '商品A', unitPrice: 1000, quantity: 1, tax: '税込' },
     { description: '商品B', unitPrice: 2000, quantity: 1, tax: '税込' },
     { description: 'サービスC', unitPrice: 1500, quantity: 1, tax: '税込' },
@@ -100,4 +102,6 @@ export const initialInvoices: Invoice[] = [
     ],
     note: '振込手数料はご負担ください。',
   },
+
+
 ];

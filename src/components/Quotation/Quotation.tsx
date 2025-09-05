@@ -1,22 +1,19 @@
 import React from "react";
-// 👇 修改这里：导入 Invoice 类型时，给它一个别名 InvoiceType，避免和组件名冲突
-import type { Invoice as InvoiceType } from "../../types/document"; 
+import type { Quotation as QuotationType  } from "../../types/document"; 
 import DocumentHeader from "../Document/DocumentHeader";
 import DocumentCompanyInfo from "../Document/DocumentCompanyInfo";
 import DocumentAmountInfo from "../Document/DocumentAmountInfo";
 import DocumentBody from "../Document/DocumentBody";
 import DocumentTotal from "../Document/DocumentTotal";
 import DocumentFooter from "../Document/DocumentFooter";
-import { DEFAULT_PRIMARY_COLOR } from "../../config";1
+import { DEFAULT_PRIMARY_COLOR } from "../../config";
 
 type Props = {
-  // 👇 修改这里：使用我们起的别名 InvoiceType
-  data: InvoiceType; 
+  data: QuotationType 
   primaryColor?: string;
 };
 
-// 组件名保持为 Invoice 不变
-const Invoice: React.FC<Props> = ({
+const Quotation: React.FC<Props> = ({
   data,
   primaryColor = DEFAULT_PRIMARY_COLOR,
 }) => {
@@ -26,9 +23,9 @@ const Invoice: React.FC<Props> = ({
       style={{ width: "210mm", height: "297mm", borderColor: primaryColor }}
     >
       {/* 子组件会接收到完整的 data 对象 */}
-      <DocumentHeader data={data} primaryColor={primaryColor}  title={data.invoiceTitle || "請求書"}/>
+      <DocumentHeader data={data} primaryColor={primaryColor} title={data.quotationTitle || "見積書"} />
       <DocumentCompanyInfo data={data} primaryColor={primaryColor} />
-      <DocumentAmountInfo data={data} primaryColor={primaryColor} totalLabel="ご請求金額" />
+      <DocumentAmountInfo data={data} primaryColor={primaryColor} totalLabel="お見積金額" showBankInfo={false} showNoteLines={false}/>
       <DocumentBody data={data} primaryColor={primaryColor} />
       <DocumentTotal data={data} primaryColor={primaryColor} />
       <DocumentFooter data={data} primaryColor={primaryColor} />
@@ -44,4 +41,4 @@ const Invoice: React.FC<Props> = ({
   );
 };
 
-export default Invoice;
+export default Quotation;

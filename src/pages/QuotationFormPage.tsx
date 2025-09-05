@@ -8,29 +8,37 @@
  * 4. 管理纯粹与视图相关的状态，例如预览区域的缩放比例。
  * 通过这种方式，我们将复杂的业务逻辑与视图渲染清晰地分离开来。
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useInvoiceForm } from '../hooks/useInvoiceForm';
-import { downloadPdf } from '../lib/pdfGenerator';
-import Invoice from '../components/Invoice/Invoice';
-import type { IssuerInfo, ClientInfo, DocumentItem } from '../types/document';
+import { useQuotationForm } from "../hooks/useQuotationForm";
+import Quotation from "../components/Quotation/Quotation";
+import type { IssuerInfo, ClientInfo, DocumentItem } from "../types/document";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from '@/components/ui/date-picker';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { ArrowLeft, Download, Trash } from "lucide-react";
 
-const InvoiceFormPage: React.FC = () => {
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import QuotationPDF from "../components/Quotation/QuotationPDF";
+
+const QuotationFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const {
     isLoading,
     isEditMode,
-    invoiceData,
+    quotationData,
     issuers,
     clients,
-    handleInvoiceDataChange,
+    handleQuotationDataChange,
     handleDateChange,
     handleIssuerChange,
     handleClientChange,
@@ -38,8 +46,8 @@ const InvoiceFormPage: React.FC = () => {
     addItem,
     removeItem,
     handleSave,
-    handleDelete, 
-  } = useInvoiceForm(id);
+    handleDelete,
+  } = useQuotationForm(id);
 
   // --- 视图相关的状态和逻辑 ---
   const [scale, setScale] = useState(0.55);
@@ -47,26 +55,20 @@ const InvoiceFormPage: React.FC = () => {
 
   useEffect(() => {
     const checkSize = () => {
-      setScale(window.matchMedia('(max-width: 1023px)').matches ? 0.35 : 0.55);
+      setScale(window.matchMedia("(max-width: 1023px)").matches ? 0.35 : 0.55);
     };
     checkSize();
-    window.addEventListener('resize', checkSize);
-    return () => window.removeEventListener('resize', checkSize);
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
   }, []);
 
-  const handleDownload = () => {
-    if (previewComponentRef.current && invoiceData?.invoiceNumber) {
-      downloadPdf(previewComponentRef.current, `請求書-${invoiceData.invoiceNumber}`);
-    } else {
-      alert("PDFを生成するための情報が不足しています。");
-    }
-  };
   
+
   const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.1, 1.5));
   const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.1, 0.3));
-  // --- 视图逻辑结束 ---
+  // --- 視圖邏輯結束 ---
 
-  if (isLoading || !invoiceData) {
+  if (isLoading || !quotationData) {
     return <div>読み込み中...</div>;
   }
 
@@ -81,45 +83,61 @@ const InvoiceFormPage: React.FC = () => {
             </Button>
           </Link>
           <h1 className="text-2xl font-bold text-primary">
-            {isEditMode ? "請求書編集" : "新規請求書作成"}
+            {isEditMode ? "見積書編集" : "新規見積書作成"}
           </h1>
         </div>
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="invoiceNumber">請求書番号</Label>
+              <Label htmlFor="quotationNumber">見積書番号</Label>
               <Input
-                id="invoiceNumber"
-                value={invoiceData.invoiceNumber}
-                onChange={(e) => handleInvoiceDataChange("invoiceNumber", e.target.value)}
+                id="quotationNumber"
+                value={quotationData.quotationNumber}
+                onChange={(e) =>
+                  handleQuotationDataChange("quotationNumber", e.target.value)
+                }
               />
             </div>
             <div className="space-y-2">
               <Label>発行日</Label>
-              <DatePicker 
-                date={new Date(invoiceData.date)}
+              <DatePicker
+                date={new Date(quotationData.date)}
                 setDate={handleDateChange}
               />
             </div>
           </div>
           <div className="space-y-2">
             <Label>開票者 (Issuer)</Label>
-            <Select value={invoiceData.issuer.id} onValueChange={handleIssuerChange}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={quotationData.issuer.id}
+              onValueChange={handleIssuerChange}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {issuers.map((issuer: IssuerInfo) => (
-                  <SelectItem key={issuer.id} value={issuer.id}>{issuer.name}</SelectItem>
+                  <SelectItem key={issuer.id} value={issuer.id}>
+                    {issuer.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label>顧客 (Client)</Label>
-            <Select value={invoiceData.client.id} onValueChange={handleClientChange}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={quotationData.client.id}
+              onValueChange={handleClientChange}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {clients.map((client: ClientInfo) => (
-                  <SelectItem key={client.id} value={client.id}>{client.clientName}</SelectItem>
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.clientName}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -127,15 +145,20 @@ const InvoiceFormPage: React.FC = () => {
           <div className="border-t pt-6">
             <h2 className="text-lg font-semibold mb-4">請求項目</h2>
             <div className="space-y-4">
-              {invoiceData.items.map((item: DocumentItem) => (
-                <div key={item.id} className="p-4 border rounded-lg bg-white space-y-3">
+              {quotationData.items.map((item: DocumentItem) => (
+                <div
+                  key={item.id}
+                  className="p-4 border rounded-lg bg-white space-y-3"
+                >
                   <div className="space-y-1">
                     <Label htmlFor={`item-desc-${item.id}`}>品番・品名</Label>
                     <Input
                       id={`item-desc-${item.id}`}
                       placeholder="例：Webサイト制作"
                       value={item.description}
-                      onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
+                      onChange={(e) =>
+                        handleItemChange(item.id, "description", e.target.value)
+                      }
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -146,7 +169,9 @@ const InvoiceFormPage: React.FC = () => {
                         type="number"
                         placeholder="10000"
                         value={item.unitPrice || ""}
-                        onChange={(e) => handleItemChange(item.id, "unitPrice", e.target.value)}
+                        onChange={(e) =>
+                          handleItemChange(item.id, "unitPrice", e.target.value)
+                        }
                       />
                     </div>
                     <div className="space-y-1">
@@ -156,16 +181,22 @@ const InvoiceFormPage: React.FC = () => {
                         type="number"
                         placeholder="1"
                         value={item.quantity || ""}
-                        onChange={(e) => handleItemChange(item.id, "quantity", e.target.value)}
+                        onChange={(e) =>
+                          handleItemChange(item.id, "quantity", e.target.value)
+                        }
                       />
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor={`item-tax-${item.id}`}>税区分</Label>
                       <Select
                         value={item.tax}
-                        onValueChange={(value) => handleItemChange(item.id, "tax", value || "税込")}
+                        onValueChange={(value) =>
+                          handleItemChange(item.id, "tax", value || "税込")
+                        }
                       >
-                        <SelectTrigger id={`item-tax-${item.id}`}><SelectValue /></SelectTrigger>
+                        <SelectTrigger id={`item-tax-${item.id}`}>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="税込">税込</SelectItem>
                           <SelectItem value="税抜">税抜</SelectItem>
@@ -177,8 +208,8 @@ const InvoiceFormPage: React.FC = () => {
                     variant="destructive"
                     size="sm"
                     onClick={() => {
-                      if (window.confirm('本当にこの項目を削除しますか？')) {
-                        removeItem(item.id)
+                      if (window.confirm("本当にこの項目を削除しますか？")) {
+                        removeItem(item.id);
                       }
                     }}
                     className="w-full mt-2"
@@ -193,12 +224,14 @@ const InvoiceFormPage: React.FC = () => {
             </Button>
           </div>
           <div className="pt-6">
-            <Button onClick={handleSave} className="w-full">保存</Button>
+            <Button onClick={handleSave} className="w-full">
+              保存
+            </Button>
             {/* 👇 2. 新增刪除按鈕，僅在編輯模式下顯示 */}
             {isEditMode && (
-              <Button 
-                onClick={handleDelete} 
-                variant="destructive" 
+              <Button
+                onClick={handleDelete}
+                variant="destructive"
                 className="w-full mt-4"
               >
                 この請求書を削除
@@ -207,21 +240,53 @@ const InvoiceFormPage: React.FC = () => {
           </div>
         </div>
       </div>
-      
 
-      {/* 右侧预览区域 (JSX 结构基本不变) */}
+      {/* 👇 2. 恢復完整的右側預覽區域 */}
       <div className="w-full lg:w-1/2 relative flex flex-col h-screen">
         <div className="absolute top-4 right-8 z-10 flex space-x-2 bg-white p-2 rounded-lg shadow-md">
-          <button onClick={handleZoomOut} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-lg font-bold">-</button>
-          <span className="px-3 py-1 text-sm flex items-center">{Math.round(scale * 100)}%</span>
-          <button onClick={handleZoomIn} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-lg font-bold">+</button>
-          <button onClick={handleDownload} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center">
-            <Download className="h-4 w-4" />
+          <button
+            onClick={handleZoomOut}
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-lg font-bold"
+          >
+            -
           </button>
+          <span className="px-3 py-1 text-sm flex items-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={handleZoomIn}
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-lg font-bold"
+          >
+            +
+          </button>
+          <PDFDownloadLink
+            key={JSON.stringify(quotationData)}
+            document={<QuotationPDF data={quotationData} />}
+            fileName={`見積書-${quotationData.quotationNumber || "draft"}.pdf`}
+          >
+            {({ blob: _blob, url: _url, loading, error: _error }) =>
+              loading ? (
+                <Button variant="outline" size="sm" disabled>
+                  生成中...
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4" />
+                </Button>
+              )
+            }
+          </PDFDownloadLink>
         </div>
         <div className="flex-grow overflow-auto p-4 lg:p-8 flex justify-center items-center">
-          <div ref={previewComponentRef} style={{ transform: `scale(${scale})`, transformOrigin: "center center", transition: "transform 0.2s" }}>
-            <Invoice data={invoiceData} />
+          <div
+            ref={previewComponentRef}
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: "center center",
+              transition: "transform 0.2s",
+            }}
+          >
+            <Quotation data={quotationData} />
           </div>
         </div>
       </div>
@@ -229,4 +294,4 @@ const InvoiceFormPage: React.FC = () => {
   );
 };
 
-export default InvoiceFormPage;
+export default QuotationFormPage;

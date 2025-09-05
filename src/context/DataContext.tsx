@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Invoice, IssuerInfo, ClientInfo } from '../types/invoice';
-import { initialInvoices, initialIssuers, initialClients } from '../data/initialData';
+import type { Invoice, Quotation,  IssuerInfo, ClientInfo } from '../types/document';
+import { initialInvoices, initialQuotations,initialIssuers, initialClients } from '../data/initialData';
 
 // --- 主题相关的定义 (无变化) ---
 export const themes = [ 
@@ -15,11 +15,15 @@ export type ThemeName = 'green' | 'blue' | 'orange'| 'Charcoal Blue' ;
 // --- Context 类型定义 (无变化) ---
 interface DataContextType {
   invoices: Invoice[];
+  quotations: Quotation[];
   issuers: IssuerInfo[];
   clients: ClientInfo[];
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoice: (updatedInvoice: Invoice) => void;
   deleteInvoice: (id: string) => void;
+  addQuotation: (quotation: Omit<Quotation, 'id'>) => void; // 👈 新增
+  updateQuotation: (updatedQuotation: Quotation) => void; // 👈 新增
+  deleteQuotation: (id: string) => void; // 👈 新增
   addIssuer: (issuerData: Omit<IssuerInfo, 'id'>) => void;
   updateIssuer: (updatedIssuer: IssuerInfo) => void;
   deleteIssuer: (id: string) => void;
@@ -75,6 +79,22 @@ const invoicesReducer = (state: Invoice[], action: InvoiceAction): Invoice[] => 
   }
 };
 
+type QuotationAction = | { type: 'ADD'; payload: Omit<Quotation, 'id'> } | { type: 'UPDATE'; payload: Quotation } | { type: 'DELETE'; payload: { id: string } };
+const quotationsReducer = (state: Quotation[], action: QuotationAction): Quotation[] => {
+  switch (action.type) {
+    case 'ADD':
+      const newQuotation = { ...action.payload, id: uuidv4() };
+      return [...state, newQuotation];
+    case 'UPDATE':
+      return state.map(quotation => quotation.id === action.payload.id ? action.payload : quotation);
+    case 'DELETE':
+      return state.filter(quotation => quotation.id !== action.payload.id);
+    default:
+      return state;
+  }
+};
+
+
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   // =================================================================
   // 👇 修改: 使用 useReducer 管理 invoices 状态
@@ -92,6 +112,15 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     window.localStorage.setItem('invoices_data', JSON.stringify(invoices));
   }, [invoices]);
+
+   const initQuotations = (initialValue: Quotation[]) => {
+    const stickyValue = window.localStorage.getItem('quotations_data'); // 👈 使用新的 key
+    return stickyValue ? JSON.parse(stickyValue) : initialValue;
+  };
+  const [quotations, dispatchQuotations] = useReducer(quotationsReducer, initialQuotations, initQuotations);
+  useEffect(() => {
+    window.localStorage.setItem('quotations_data', JSON.stringify(quotations)); // 👈 使用新的 key
+  }, [quotations]);
 
 
   // --- issuers 和 clients 状态管理 (无变化) ---
@@ -123,6 +152,12 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     dispatchInvoices({ type: 'DELETE', payload: { id } });
   };
 
+const addQuotation = (quotationData: Omit<Quotation, 'id'>) => dispatchQuotations({ type: 'ADD', payload: quotationData });
+  const updateQuotation = (updatedQuotation: Quotation) => dispatchQuotations({ type: 'UPDATE', payload: updatedQuotation });
+  const deleteQuotation = (id: string) => dispatchQuotations({ type: 'DELETE', payload: { id } });
+
+
+
 
   // --- issuers 和 clients 的操作函数 (无变化) ---
   const addIssuer = (issuerData: Omit<IssuerInfo, 'id'>) => {
@@ -135,6 +170,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const deleteIssuer = (id: string) => {
     setIssuers(prev => prev.filter(issuer => issuer.id !== id));
   };
+
   const addClient = (clientData: Omit<ClientInfo, 'id'>) => {
     const newClient = { ...clientData, id: uuidv4() };
     setClients(prev => [...prev, newClient]);
@@ -150,11 +186,15 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   // --- Context Provider 的 value (无变化) ---
   const value = {
     invoices,
+    quotations, 
     issuers,
     clients,
     addInvoice,
     updateInvoice,
     deleteInvoice,
+    addQuotation, // 👈 新增
+    updateQuotation, // 👈 新增
+    deleteQuotation, // 👈 新增
     addIssuer,
     updateIssuer,
     deleteIssuer,
